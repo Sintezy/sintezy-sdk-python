@@ -75,6 +75,17 @@ class Document:
 
 
 @dataclass
+class SubscriptionStatus:
+    """Status da assinatura de um email"""
+    email: str
+    has_subscription: bool
+    status: Optional[str] = None
+    plan_type: Optional[str] = None
+    end_date: Optional[datetime] = None
+    checkout_url: Optional[str] = None
+
+
+@dataclass
 class DocumentListItem:
     """Item da lista de documentos"""
     type: str
@@ -250,9 +261,36 @@ class SintezySDK:
         return self._request('DELETE', f'/sdk/appointments/{appointment_id}')
     
     # ============================================================
+    # SUBSCRIPTION STATUS (ASSINATURA)
+    # ============================================================
+
+    def get_subscription_status(self, email: str) -> SubscriptionStatus:
+        """
+        Consulta o status da assinatura de um email.
+        Disponível apenas para API Keys do tipo unauthenticated (reseller).
+
+        Args:
+            email: Email do usuário a consultar
+
+        Returns:
+            Status da assinatura
+        """
+        from urllib.parse import quote
+        data = self._request('GET', f'/sdk/subscription-status?email={quote(email)}')
+
+        return SubscriptionStatus(
+            email=data['email'],
+            has_subscription=data['hasSubscription'],
+            status=data.get('status'),
+            plan_type=data.get('planType'),
+            end_date=datetime.fromisoformat(data['endDate'].replace('Z', '+00:00')) if data.get('endDate') else None,
+            checkout_url=data.get('checkoutUrl'),
+        )
+
+    # ============================================================
     # DOCUMENTOS
     # ============================================================
-    
+
     def generate_document(self, appointment_id: str, document_type: str) -> Document:
         """
         Gera um documento a partir de uma consulta.
@@ -355,5 +393,6 @@ __all__ = [
     'Appointment',
     'Document',
     'DocumentListItem',
+    'SubscriptionStatus',
 ]
 __version__ = '0.1.0'
