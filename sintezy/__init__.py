@@ -75,6 +75,15 @@ class Document:
 
 
 @dataclass
+class Transcription:
+    """Transcrição de uma consulta"""
+    secure_id: str
+    transcription: Optional[str]
+    status: str
+    recorded_time_seconds: Optional[int] = None
+
+
+@dataclass
 class SubscriptionStatus:
     """Status da assinatura de um email"""
     email: str
@@ -261,6 +270,29 @@ class SintezySDK:
         return self._request('DELETE', f'/sdk/appointments/{appointment_id}')
     
     # ============================================================
+    # TRANSCRIPTION (TRANSCRIÇÃO)
+    # ============================================================
+
+    def get_transcription(self, appointment_id: str) -> Transcription:
+        """
+        Busca a transcrição de uma consulta.
+
+        Args:
+            appointment_id: ID seguro da consulta
+
+        Returns:
+            Transcrição da consulta
+        """
+        data = self._request('GET', f'/sdk/appointments/{appointment_id}/transcription')
+
+        return Transcription(
+            secure_id=data['secureId'],
+            transcription=data.get('transcription'),
+            recorded_time_seconds=data.get('recordedTimeSeconds'),
+            status=data['status'],
+        )
+
+    # ============================================================
     # SUBSCRIPTION STATUS (ASSINATURA)
     # ============================================================
 
@@ -394,5 +426,6 @@ __all__ = [
     'Document',
     'DocumentListItem',
     'SubscriptionStatus',
+    'Transcription',
 ]
 __version__ = '0.1.0'
