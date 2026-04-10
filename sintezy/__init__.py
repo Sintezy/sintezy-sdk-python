@@ -198,11 +198,12 @@ class SintezySDK:
         user_occupation_doc: Optional[str] = None,
         appointment_type: str = 'NORMAL',
         modality: str = 'PRESENCIAL',
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        redirect_url: Optional[str] = None,
     ) -> Appointment:
         """
         Cria uma nova consulta (appointment).
-        
+
         Args:
             user_email: Email do usuário (médico/profissional)
             user_name: Nome do usuário
@@ -213,11 +214,13 @@ class SintezySDK:
             appointment_type: Tipo da consulta (NORMAL ou RETORNO)
             modality: Modalidade (PRESENCIAL ou ONLINE)
             metadata: Metadados extras (opcional)
-        
+            redirect_url: URL de redirecionamento após geração do documento.
+                Se fornecida, o portal redireciona para esta URL ao invés de fechar a janela. (opcional)
+
         Returns:
             Dados da consulta criada
         """
-        data = self._request('POST', '/sdk/appointments', {
+        body: Dict[str, Any] = {
             'userEmail': user_email,
             'userName': user_name,
             'layout': layout,
@@ -227,7 +230,10 @@ class SintezySDK:
             'type': appointment_type,
             'modality': modality,
             'metadata': metadata,
-        })
+        }
+        if redirect_url:
+            body['redirectUrl'] = redirect_url
+        data = self._request('POST', '/sdk/appointments', body)
         
         return Appointment(
             secure_id=data['secureId'],
